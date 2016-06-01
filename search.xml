@@ -4,7 +4,7 @@
   
     
     <entry>
-      <title></title>
+      <title><![CDATA[php中的session和cookie]]></title>
       <url>http://yoursite.com/2016/05/17/php%E4%B8%AD%E7%9A%84session%E5%92%8Ccookie/</url>
       <content type="html"><![CDATA[<p>最近在项目中使用了thinkphp框架，对php中的session和cookie进行了一些研究。根据客户的需求，在文本编辑页面长时间无操作时，用户的登录状态应依然保持，即session和cookie均会自动延长其生存时间。<br><a id="more"></a> </p>
 <hr>
