@@ -68,7 +68,7 @@
 <link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="php-session," />
 
 
 
@@ -84,15 +84,27 @@
 
 
 
-<meta name="description" content="SagaciousHugo‘s Blog | java | php | js | mysql">
-<meta property="og:type" content="website">
-<meta property="og:title" content="SagaciousHugo‘s Blog">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta name="description" content="在研究php session回收机制的时候，发现了一种奇怪的现象：假如服务器只有一个人访问（且此时垃圾回收概率设置为1），若此时session已经过期，那么再次访问时他的session仍然存在。看了一些资料，了解到session执行时，有以下几个步骤：&amp;lt;– more –&amp;gt;  
+本着严谨的态度，对php-src version 7 中session.c进行了一些研究。php源码从哪找？1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="php session源码分析">
+<meta property="og:url" content="http://yoursite.com/2016/06/08/php-session源码分析/index.html">
 <meta property="og:site_name" content="SagaciousHugo‘s Blog">
-<meta property="og:description" content="SagaciousHugo‘s Blog | java | php | js | mysql">
+<meta property="og:description" content="在研究php session回收机制的时候，发现了一种奇怪的现象：假如服务器只有一个人访问（且此时垃圾回收概率设置为1），若此时session已经过期，那么再次访问时他的session仍然存在。看了一些资料，了解到session执行时，有以下几个步骤：&amp;lt;– more –&amp;gt;  
+本着严谨的态度，对php-src version 7 中session.c进行了一些研究。php源码从哪找？1">
+<meta property="og:image" content="http://o7bsrhxey.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20160606142537.jpg">
+<meta property="og:image" content="http://o7bsrhxey.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20160607095502.jpg">
+<meta property="og:image" content="http://o7bsrhxey.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20160608135710.jpg">
+<meta property="og:image" content="http://o7bsrhxey.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20160608142212.jpg">
+<meta property="og:image" content="http://o7bsrhxey.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20160608142652.jpg">
+<meta property="og:image" content="http://o7bsrhxey.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20160608142248.jpg">
+<meta property="og:image" content="http://o7bsrhxey.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20160606142537.jpg">
+<meta property="og:updated_time" content="2016-06-08T06:38:37.384Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="SagaciousHugo‘s Blog">
-<meta name="twitter:description" content="SagaciousHugo‘s Blog | java | php | js | mysql">
+<meta name="twitter:title" content="php session源码分析">
+<meta name="twitter:description" content="在研究php session回收机制的时候，发现了一种奇怪的现象：假如服务器只有一个人访问（且此时垃圾回收概率设置为1），若此时session已经过期，那么再次访问时他的session仍然存在。看了一些资料，了解到session执行时，有以下几个步骤：&amp;lt;– more –&amp;gt;  
+本着严谨的态度，对php-src version 7 中session.c进行了一些研究。php源码从哪找？1">
+<meta name="twitter:image" content="http://o7bsrhxey.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20160606142537.jpg">
 
 
 
@@ -110,7 +122,7 @@
   };
 </script>
 
-  <title> SagaciousHugo‘s Blog </title>
+  <title> php session源码分析 | SagaciousHugo‘s Blog </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -141,9 +153,7 @@
     
   
 
-  <div class="container one-collumn sidebar-position-left 
-   page-home 
- ">
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -270,9 +280,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
   
@@ -292,10 +302,7 @@
             
             
               
-                
-                <a class="post-title-link" href="/2016/06/08/php-session源码分析/" itemprop="url">
-                  php session源码分析
-                </a>
+                php session源码分析
               
             
           </h1>
@@ -351,9 +358,7 @@
       
 
       
-        
-          
-            <p>在研究php session回收机制的时候，发现了一种奇怪的现象：假如服务器只有一个人访问（且此时垃圾回收概率设置为1），若此时session已经过期，那么再次访问时他的session仍然存在。看了一些资料，了解到session执行时，有以下几个步骤：<br>&lt;– more –&gt;<br><img src="http://o7bsrhxey.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20160606142537.jpg" alt="image">  </p>
+        <p>在研究php session回收机制的时候，发现了一种奇怪的现象：假如服务器只有一个人访问（且此时垃圾回收概率设置为1），若此时session已经过期，那么再次访问时他的session仍然存在。看了一些资料，了解到session执行时，有以下几个步骤：<br>&lt;– more –&gt;<br><img src="http://o7bsrhxey.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20160606142537.jpg" alt="image">  </p>
 <h2 id="本着严谨的态度，对php-src-version-7-中session-c进行了一些研究。"><a href="#本着严谨的态度，对php-src-version-7-中session-c进行了一些研究。" class="headerlink" title="本着严谨的态度，对php-src version 7 中session.c进行了一些研究。"></a>本着严谨的态度，对php-src version 7 中session.c进行了一些研究。</h2><h2 id="php源码从哪找？"><a href="#php源码从哪找？" class="headerlink" title="php源码从哪找？"></a>php源码从哪找？</h2><p>1、官网 <a href="http://windows.php.net/download/" target="_blank" rel="external">http://windows.php.net/download/</a><br><img src="http://o7bsrhxey.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20160607095502.jpg" alt="image"><br>2、php的github 账号 <a href="https://github.com/php/php-src" target="_blank" rel="external">https://github.com/php/php-src</a></p>
 <p>另，官网有linux的包，但暂时linux还不太会用= =，之后再补上linux下看源码的方法。</p>
 <h2 id="php源码目录结构"><a href="#php源码目录结构" class="headerlink" title="php源码目录结构"></a>php源码目录结构</h2><p>如图所示（php-src version 7）<br><img src="http://o7bsrhxey.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20160608135710.jpg" alt="image"><br>具体说明如下：</p>
@@ -377,380 +382,58 @@
 <p>通过上面说的，我们可以知道session的回收机制，确实是<br><img src="http://o7bsrhxey.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20160606142537.jpg" alt="image">  </p>
 <p>参考资料<br>1、php-zend引擎分析 <a href="http://rapheal.sinaapp.com/2013/11/14/php_zend_lex/" target="_blank" rel="external">http://rapheal.sinaapp.com/2013/11/14/php_zend_lex/</a><br>2、PHP内核探索：一次请求生命周期 <a href="http://www.nowamagic.net/librarys/veda/detail/1287" target="_blank" rel="external">http://www.nowamagic.net/librarys/veda/detail/1287</a><br>3、php内核面向对象总结 <a href="http://blog.jobbole.com/97790/" target="_blank" rel="external">http://blog.jobbole.com/97790/</a><br>4、PHP内核探索之变量（5）- session的基本原理 <a href="http://blog.csdn.net/ohmygirl/article/details/43152683" target="_blank" rel="external">http://blog.csdn.net/ohmygirl/article/details/43152683</a></p>
 
-          
+      
+    </div>
+
+    <div>
+      
         
       
     </div>
 
     <div>
       
-    </div>
+        
 
-    <div>
       
     </div>
 
     <footer class="post-footer">
       
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/06/06/php-session回收机制/" itemprop="url">
-                  php session回收机制
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-06-06T14:13:34+08:00" content="2016-06-06">
-              2016-06-06
-            </time>
-          </span>
-
+        <div class="post-tags">
           
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/06/06/php-session回收机制/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/06/06/php-session回收机制/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-          
-          
-             <span id="/2016/06/06/php-session回收机制/" class="leancloud_visitors" data-flag-title="php session回收机制">
-               &nbsp; | &nbsp;
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               <span class="post-meta-item-text">阅读次数 </span>
-               <span class="leancloud-visitors-count"></span>
-              </span>
-          
-
+            <a href="/tags/php-session/" rel="tag">#php-session</a>
           
         </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
-        
-          <p>在上一篇文章中说明了要保持用户的登录状态，必须保证cookie和session均有效，而如果换一种角度，问题就变为如何在规定时间内使用户登录状态失效呢？我们先从下面的问题说起。<br>（注意，本篇基于php默认session机制，php.ini配置：session.save_handler = files，即使用服务器/tmp目录下的文件来保存session）。</p>
-<h2 id=""><a href="#" class="headerlink" title=" "></a>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2016/06/06/php-session回收机制/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/06/06/php-session回收机制/" rel="next" title="php session回收机制">
+                <i class="fa fa-chevron-left"></i> php session回收机制
+              </a>
+            
           </div>
-        
-      
-    </div>
 
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
+          <div class="post-nav-prev post-nav-item">
             
-            
-              
-                
-                <a class="post-title-link" href="/2016/05/17/php中的session和cookie/" itemprop="url">
-                  php中的session和cookie
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-05-17T23:06:12+08:00" content="2016-05-17">
-              2016-05-17
-            </time>
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/05/17/php中的session和cookie/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/05/17/php中的session和cookie/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-          
-          
-             <span id="/2016/05/17/php中的session和cookie/" class="leancloud_visitors" data-flag-title="php中的session和cookie">
-               &nbsp; | &nbsp;
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               <span class="post-meta-item-text">阅读次数 </span>
-               <span class="leancloud-visitors-count"></span>
-              </span>
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>最近在项目中使用了thinkphp框架，对php中的session和cookie进行了一些研究。根据客户的需求，在文本编辑页面长时间无操作时，用户的登录状态应依然保持，即session和cookie均会自动延长其生存时间。</p>
-<h2 id=""><a href="#" class="headerlink" title=" "></a>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2016/05/17/php中的session和cookie/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
           </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/05/16/hello-world/" itemprop="url">
-                  Hello World
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-05-16T20:13:50+08:00" content="2016-05-16">
-              2016-05-16
-            </time>
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/05/16/hello-world/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/05/16/hello-world/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-          
-          
-             <span id="/2016/05/16/hello-world/" class="leancloud_visitors" data-flag-title="Hello World">
-               &nbsp; | &nbsp;
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               <span class="post-meta-item-text">阅读次数 </span>
-               <span class="leancloud-visitors-count"></span>
-              </span>
-          
-
-          
         </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
-        
-          
-            <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="external">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="external">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="external">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="external">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="external">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="external">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="external">Deployment</a></p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -758,6 +441,14 @@
 
 
           
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/06/08/php-session源码分析/"
+           data-title="php session源码分析" data-url="http://yoursite.com/2016/06/08/php-session源码分析/">
+      </div>
+    
+  </div>
+
 
         </div>
         
@@ -777,8 +468,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel  sidebar-panel-active ">
+      <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/qqAvatar.gif"
@@ -832,6 +532,17 @@
 
       </section>
 
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#本着严谨的态度，对php-src-version-7-中session-c进行了一些研究。"><span class="nav-number">1.</span> <span class="nav-text">本着严谨的态度，对php-src version 7 中session.c进行了一些研究。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#php源码从哪找？"><span class="nav-number">2.</span> <span class="nav-text">php源码从哪找？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#php源码目录结构"><span class="nav-number">3.</span> <span class="nav-text">php源码目录结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#php内核面向对象的类结构"><span class="nav-number">4.</span> <span class="nav-text">php内核面向对象的类结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#session-c"><span class="nav-number">5.</span> <span class="nav-text">session.c</span></a></li></ol></div>
+            
+          </div>
+        </section>
       
 
     </div>
@@ -935,6 +646,10 @@
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
 
   
 
